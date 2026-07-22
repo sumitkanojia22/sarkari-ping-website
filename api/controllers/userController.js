@@ -8,10 +8,11 @@ export const getAllUser = async (req, res) => {
     data: users,
   });
 };
-export const getUserById = (req, res) => {
+export const getUserById = async (req, res) => {
+  const userById = await Users.findById(req.params.id);
   res.status(200).json({
     status: "success",
-    message: "This Route is not implemented",
+    data: userById,
   });
 };
 export const createUser = async (req, res) => {
@@ -22,15 +23,20 @@ export const createUser = async (req, res) => {
     data: newUser,
   });
 };
-export const updateUser = (req, res) => {
+export const updateUser = async (req, res) => {
+  const updatedUser = await Users.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
   res.status(200).json({
     status: "success",
-    message: "This Route is not implemented",
+    data: updatedUser,
   });
 };
-export const deleteUser = (req, res) => {
-  res.status(200).json({
+export const deleteUser = async (req, res) => {
+  const deletedUser = await Users.findByIdAndDelete(req.params.id);
+  res.status(204).json({
     status: "success",
-    message: "This Route is not implemented",
+    data: deletedUser,
   });
 };
