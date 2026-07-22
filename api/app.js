@@ -14,4 +14,12 @@ app.use(express.json());
 
 app.use("/api/v1/users", userRoutes);
 
+//Handling Unhandle routes.
+app.all(/.*/, (req, res) => {
+  res.status(404).json({
+    status: "failed",
+    message: `Can't find route in ${req.originalUrl} from th API`,
+  });
+});
+
 export default app;
