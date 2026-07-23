@@ -8,6 +8,8 @@ dotenv.config({ path: "./config.env" });
 
 const port = process.env.PORT || 8080;
 
+const enivornment = process.env.NODE_ENV;
+
 const DB = process.env.DATABASE.replace("<PASSWORD>", process.env.DB_PASSWORD);
 
 mongoose.connect(DB).then(() => {
@@ -16,4 +18,5 @@ mongoose.connect(DB).then(() => {
 
 app.listen(port, () => {
   console.log(`LISTENING ON PORT:${port}`);
+  console.log(`ENIVORNMENT: ${enivornment}`);
 });

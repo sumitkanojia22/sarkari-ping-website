@@ -1,4 +1,6 @@
 import express, { json } from "express";
+import AppError from "./utils/appError.js";
+import globalErrorHandler from "./controllers/errorController.js";
 import cors from "cors";
 import helmet from "helmet";
 
@@ -15,11 +17,10 @@ app.use(express.json());
 app.use("/api/v1/users", userRoutes);
 
 //Handling Unhandle routes.
-app.all(/.*/, (req, res) => {
-  res.status(404).json({
-    status: "failed",
-    message: `Can't find route in ${req.originalUrl} from th API`,
-  });
+app.all(/.*/, (req, res, next) => {
+  next(new AppError(`Can't find route in ${req.originalUrl} from th API`, 404));
 });
+
+app.use(globalErrorHandler);
 
 export default app;
