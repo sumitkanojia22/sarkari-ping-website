@@ -1,4 +1,17 @@
-import e from "express";
+import AppError from "./../utils/appError.js";
+
+const handleCastErrorDB = (err) => {
+  return new AppError(`Invalid ${err.path}: ${err.value}`, 400);
+};
+
+const handleDuplicateFieldDB = (err) => {
+  const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
+
+  return new AppError(
+    `Duplicate field value: ${value}, Please use another Value`,
+    400,
+  );
+};
 
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
@@ -34,7 +47,15 @@ const globalErrorHandler = (err, req, res, next) => {
   if (process.env.NODE_ENV === "development") {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === "production") {
-    sendErrorProd(err, res);
+    let error = err;
+
+    //Cast error for wrong type of id or value
+    if (error.name === "CastError") error = handleCastErrorDB(error);
+
+    //Duplicate field
+    if (error.code === 11000) error = handleDuplicateFieldDB(error);
+
+    sendErrorProd(error, res);
   }
 };
 

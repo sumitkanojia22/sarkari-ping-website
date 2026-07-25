@@ -4,6 +4,13 @@ import dotenv from "dotenv";
 
 import app from "./app.js";
 
+process.on("uncaughtException", (err) => {
+  console.log(`Error name: ${err.name}, Error message: ${err.message}`);
+  console.log("Uncaught Exception, shutting down...");
+
+  process.exit(1);
+});
+
 dotenv.config({ path: "./config.env" });
 
 const port = process.env.PORT || 8080;
@@ -16,7 +23,16 @@ mongoose.connect(DB).then(() => {
   console.log("DATABASE IS CONNECT SUCCESSFULLY");
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`LISTENING ON PORT:${port}`);
   console.log(`ENIVORNMENT: ${enivornment}`);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.log(`Error name: ${err.name}, Error message: ${err.message}`);
+  console.log("unhandled rejection, shutting down...");
+
+  server.close(() => {
+    process.exit(1);
+  });
 });
