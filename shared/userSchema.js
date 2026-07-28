@@ -17,6 +17,14 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     validate: [validator.isEmail, "Please provide a valid Email-id"],
   },
+
+  password: {
+    type: String,
+    required: [true, "The User must have Password"],
+    minlength: 8,
+    maxlength: 40,
+    select: false,
+  },
 });
 
 export default userSchema;
