@@ -5,6 +5,7 @@ import cors from "cors";
 import helmet from "helmet";
 
 import userRoutes from "./routes/userRoute.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
@@ -14,6 +15,9 @@ app.use(helmet());
 
 app.use(express.json());
 
+app.use(cookieParser());
+
+//routes
 app.use("/api/v1/users", userRoutes);
 
 //Handling Unhandle routes.

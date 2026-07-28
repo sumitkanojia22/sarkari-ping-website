@@ -13,6 +13,15 @@ const handleDuplicateFieldDB = (err) => {
   );
 };
 
+const handleValidationErrorEB = (err) => {
+  const errors = Object.values(err.errors).map((err) => err.message);
+
+  return new AppError(
+    `Invalid or Empty value : ${errors.join(". ")} , Please use Vaild Input`,
+    400,
+  );
+};
+
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -54,6 +63,10 @@ const globalErrorHandler = (err, req, res, next) => {
 
     //Duplicate field
     if (error.code === 11000) error = handleDuplicateFieldDB(error);
+
+    //Validation error
+    if (error.name === "ValidationError")
+      error = handleValidationErrorEB(error);
 
     sendErrorProd(error, res);
   }
