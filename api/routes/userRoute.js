@@ -8,7 +8,8 @@ import {
 } from "../controllers/userController.js";
 import {
   getMe,
-  refreshToken,
+  handleRefreshToken,
+  protect,
   userLogin,
   userLogout,
   userLogoutAllSession,
@@ -21,8 +22,8 @@ userRoutes.route("/auth/signup").post(userSignUp);
 userRoutes.route("/auth/login").post(userLogin);
 userRoutes.route("/auth/logout").get(userLogout);
 userRoutes.route("/auth/logout-all").get(userLogoutAllSession);
-userRoutes.route("/auth/get-me").get(getMe);
-userRoutes.route("/auth/refresh-token").get(refreshToken);
+userRoutes.route("/auth/get-me").get(protect, getMe);
+userRoutes.route("/auth/refresh-token").get(handleRefreshToken);
 
 userRoutes.route("/").get(getAllUser).post(createUser);
 

@@ -3,13 +3,17 @@ import AppError from "./utils/appError.js";
 import globalErrorHandler from "./controllers/errorController.js";
 import cors from "cors";
 import helmet from "helmet";
-
 import userRoutes from "./routes/userRoute.js";
 import cookieParser from "cookie-parser";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5174",
+    credentials: true,
+  }),
+);
 
 app.use(helmet());
 

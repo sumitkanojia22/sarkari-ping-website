@@ -22,6 +22,17 @@ const handleValidationErrorEB = (err) => {
   );
 };
 
+// FIX: new — jwt.verify() throws JsonWebTokenError (bad signature/malformed)
+// or TokenExpiredError (expired) rather than returning null. Without these,
+// every expired refresh/access token fell through to the generic 500 branch
+// below, so the frontend could never tell "token expired, please refresh"
+// apart from "the server broke."
+const handleJWTError = () =>
+  new AppError("Invalid token, please log in again", 401);
+
+const handleJWTExpiredError = () =>
+  new AppError("Your session has expired, please log in again", 401);
+
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -54,7 +65,14 @@ const globalErrorHandler = (err, req, res, next) => {
   err.status = err.status || "error";
 
   if (process.env.NODE_ENV === "development") {
-    sendErrorDev(err, res);
+    // FIX: apply the same JWT translation in dev too, so local testing sees
+    // the same 401 behavior production will have, instead of masking it
+    // with the full stack trace only in prod.
+    let error = err;
+    if (error.name === "JsonWebTokenError") error = handleJWTError();
+    if (error.name === "TokenExpiredError") error = handleJWTExpiredError();
+
+    sendErrorDev(error, res);
   } else if (process.env.NODE_ENV === "production") {
     let error = err;
 
@@ -67,6 +85,10 @@ const globalErrorHandler = (err, req, res, next) => {
     //Validation error
     if (error.name === "ValidationError")
       error = handleValidationErrorEB(error);
+
+    //FIX: JWT errors
+    if (error.name === "JsonWebTokenError") error = handleJWTError();
+    if (error.name === "TokenExpiredError") error = handleJWTExpiredError();
 
     sendErrorProd(error, res);
   }
