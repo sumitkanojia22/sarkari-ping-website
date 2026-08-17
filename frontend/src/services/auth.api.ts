@@ -83,43 +83,32 @@ export const logout = async () => {
   }
 };
 
-// FIX: new — used on app load to silently exchange the refreshToken cookie
-// (httpOnly, survives page refresh) for a fresh accessToken (lives only in
-// memory, wiped on refresh). No email/password involved.
-//
-// IMPORTANT: this must return null on failure, not throw. AuthProvider's
-// bootstrapSession does `const token = await refreshAccessToken()` with no
-// try/catch — a throw here on a fresh visit (no cookie yet -> 401, totally
-// expected) skips straight past setLoading(false), leaving `loading` stuck
-// true forever and Protected showing "Loading..." indefinitely. This was
-// the actual cause of the reload-stuck-on-loading bug.
+let refreshPromise: Promise<string | null> | null = null;
+
 export const refreshAccessToken = async () => {
-  try {
-    const response = await api.get("/auth/refresh-token");
-    return response.data.newAccessToken as string;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status !== 401) {
-      // 401 = no session yet, expected and silent (first visit, expired
-      // refresh token). Anything else is unexpected — log it so a broken
-      // network/CORS/server config doesn't silently strand the user.
-      console.error(
-        "refreshAccessToken failed unexpectedly:",
-        error.response?.data?.message ?? error.message,
-      );
-    } else if (!axios.isAxiosError(error)) {
-      console.error("refreshAccessToken failed unexpectedly:", error);
-    }
-    return null;
+  // Someone is already refreshing.
+  // Wait for that same request.
+  if (refreshPromise) {
+    return refreshPromise;
   }
+
+  refreshPromise = (async () => {
+    try {
+      const response = await api.get("/auth/refresh-token", {
+        withCredentials: true,
+      });
+
+      return response.data.newAccessToken ?? null;
+    } catch {
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 };
 
-// FIX: new — fetches the current user using whatever token setAuthHeader
-// last set. Requires refreshAccessToken (+ setAuthHeader) to have run first,
-// since the backend's `protect` middleware needs a valid Authorization header.
-//
-// IMPORTANT: same contract as refreshAccessToken above — must return null,
-// not throw, or bootstrapSession's setLoading(false) gets skipped and
-// Protected is stuck showing "Loading..." forever.
 export const getMe = async () => {
   try {
     const response = await api.get("/auth/get-me");

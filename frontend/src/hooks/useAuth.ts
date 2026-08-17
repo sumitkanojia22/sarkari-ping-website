@@ -30,9 +30,7 @@ export const useAuth = () => {
       setLoading(true);
       const data = await signUp({ name, email, password });
       setAccessToken(data.accessToken);
-      // FIX: keep axios's default Authorization header in sync with context
-      // state, so getMe() and any other authenticated call made through the
-      // `api` instance in auth.api.ts works without passing the token manually.
+
       setAuthHeader(data.accessToken);
       setUser(data.newUser);
 

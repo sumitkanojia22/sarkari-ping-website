@@ -17,7 +17,7 @@ export default function SignUp() {
     navigate("/");
   };
   return (
-    <section className="w-[50%] h-full flex flex-col gap-4 justify-center items-center sec-vertical">
+    <section className="w-[65%] h-full flex flex-col gap-4 justify-center items-center">
       <h1>Sign Up</h1>
       <p>Create an account to find your currated Job.</p>
       <form
