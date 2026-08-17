@@ -17,6 +17,7 @@ const refreshTokenCookieOptions = {
   secure: isProd,
   sameSite: isProd ? "strict" : "lax",
   maxAge: 10 * 24 * 60 * 60 * 1000, //expire in days
+  // maxAge: 5000, //expire in days
 };
 
 export const userSignUp = catchAsync(async (req, res, next) => {
@@ -255,15 +256,15 @@ export const userLogoutAllSession = catchAsync(async (req, res, next) => {
 });
 
 export const protect = catchAsync(async (req, res, next) => {
-  const refreshToken = req.cookies.refreshToken;
+  // const refreshToken = req.cookies.refreshToken;
 
-  if (!refreshToken) {
-    return next(new AppError("Refresh token is not found or expires", 401));
-  }
+  // if (!refreshToken) {
+  //   return next(new AppError("Refresh token is not found or expires", 401));
+  // }
 
-  // jwt.verify throws rather than returning falsy; errorController.js
-  // turns the throw into a 401.
-  jwt.verify(refreshToken, process.env.JWT_SECRET);
+  // // jwt.verify throws rather than returning falsy; errorController.js
+  // // turns the throw into a 401.
+  // jwt.verify(refreshToken, process.env.JWT_SECRET);
 
   if (
     !req.headers.authorization ||
