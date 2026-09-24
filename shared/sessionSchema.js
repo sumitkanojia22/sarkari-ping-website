@@ -4,7 +4,7 @@ const sessionSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "users",
+      ref: "Users",
       required: [true, "User is Required"],
     },
 
@@ -25,6 +25,11 @@ const sessionSchema = new mongoose.Schema(
     revoked: {
       type: Boolean,
       default: false,
+    },
+    expiresAt: {
+      type: Date,
+      default: () => new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+      index: { expires: 0 },
     },
   },
   {

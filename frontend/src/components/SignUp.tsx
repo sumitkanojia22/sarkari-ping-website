@@ -37,7 +37,7 @@ export default function SignUp() {
           />
         </div>
         <div className="flex flex-col">
-          <label htmlFor="">Email-Id</label>
+          <label htmlFor="email">Email-Id</label>
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -62,6 +62,7 @@ export default function SignUp() {
           <button
             className="btn-primary text-black w-max flex justify-center items-center gap-x-2"
             type="submit"
+            disabled={loading}
           >
             Sign Up
             {loading && (

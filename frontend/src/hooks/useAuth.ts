@@ -47,6 +47,7 @@ export const useAuth = () => {
           description: error.message,
         });
       }
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -75,6 +76,7 @@ export const useAuth = () => {
           description: error.message,
         });
       }
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -82,12 +84,15 @@ export const useAuth = () => {
 
   //Handle Logout
   const handleLogout = async () => {
-    setLoading(true);
-    await logout();
-    setAccessToken(null);
-    setAuthHeader(null); // FIX: clear the axios default header too, not just context
-    setUser(null);
-    setLoading(false);
+    try {
+      setLoading(true);
+      await logout();
+      setAccessToken(null);
+      setAuthHeader(null);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {

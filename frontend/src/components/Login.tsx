@@ -12,16 +12,11 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      await handleLogin({ email, password });
-
-      navigate("/");
-    } catch (error) {
-      if (error instanceof Error) console.log("Error");
-    }
+    await handleLogin({ email, password });
+    navigate("/");
   };
   return (
-    <section className="w-[50%] h-full flex flex-col gap-4 justify-center items-center sec-vertical">
+    <section className="w-[65%] h-full flex flex-col gap-4 justify-center items-center">
       <h1>Login</h1>
       <p>Get into an account to find your currated Job.</p>
       <form
@@ -30,7 +25,7 @@ export default function Login() {
         action=""
       >
         <div className="flex flex-col">
-          <label htmlFor="">Email-Id</label>
+          <label htmlFor="email">Email-Id</label>
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -55,6 +50,7 @@ export default function Login() {
           <button
             className="btn-primary text-black w-max flex justify-center items-center gap-x-2"
             type="submit"
+            disabled={loading}
           >
             Login
             {loading && (

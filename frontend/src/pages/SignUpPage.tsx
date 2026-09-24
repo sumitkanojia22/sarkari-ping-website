@@ -3,7 +3,7 @@ import SignUp from "../components/SignUp";
 export const SignUpPage = () => {
   return (
     <div className="w-full h-screen flex justify-center items-center ">
-      <section className="w-[35%] h-full p-8 flex flex-col justify-between bg-[url(bg.svg)] bg-cover">
+      <section className="w-[35%] h-full p-8 flex flex-col justify-between bg-[url('/bg.svg')] bg-cover">
         <div className="">
           <h1>Sarkari Ping.</h1>
         </div>

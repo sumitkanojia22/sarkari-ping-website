@@ -13,7 +13,7 @@ interface LoginPayloadType {
 
 //Creating axios Instance
 const api = axios.create({
-  baseURL: "http://localhost:8080/api/v1/users",
+  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8080/api/v1/users",
   withCredentials: true,
 });
 
@@ -94,7 +94,7 @@ export const refreshAccessToken = async () => {
 
   refreshPromise = (async () => {
     try {
-      const response = await api.get("/auth/refresh-token", {
+      const response = await api.post("/auth/refresh-token", undefined, {
         withCredentials: true,
       });
 
@@ -125,3 +125,52 @@ export const getMe = async () => {
     return null;
   }
 };
+
+export interface Vacancy {
+  postName: string;
+  postCount: number;
+}
+
+export interface Job {
+  _id: string;
+  title: string;
+  sourceUrl: string;
+  source: string;
+  category: string;
+  description?: string;
+  eligibility?: string;
+  applicationStartDate?: string;
+  applicationLastDate?: string;
+  applicationFee?: string;
+  ageLimit?: string;
+  selectionProcess?: string[];
+  organization?: string;
+  education?: string;
+  examDate?: string;
+  totalVacancies?: number;
+  vacancies?: Vacancy[];
+  importantDates?: { label: string; date: string }[];
+  importantLinks?: { label: string; type: string; url: string }[];
+  applicationUrl?: string;
+  status?: string;
+  firstSeenAt: string;
+  lastSeenAt: string;
+}
+
+export interface JobQuery { page?: number; limit?: number; search?: string; category?: string; organization?: string; state?: string; qualification?: string; jobType?: string; open?: boolean; sort?: "deadline" | "vacancies" | "updated"; }
+export interface JobResponse { data: Job[]; pagination: { page: number; limit: number; total: number; pages: number }; }
+export const getLatestJobs = async (query: JobQuery = {}): Promise<JobResponse> => { const response = await api.get("/jobs", { params: query }); return { data: response.data.data, pagination: response.data.pagination }; };
+
+export const getJobById = async (jobId: string): Promise<Job> => {
+  const response = await api.get(`/jobs/${jobId}`);
+  return response.data.data;
+};
+export interface Preferences { categories: string[]; organizations: string[]; departments: string[]; states: string[]; preferredLocations: string[]; jobTypes: string[]; qualifications: string[]; degrees: string[]; branches: string[]; governmentTypes: string[]; minSalary?: number; onlyActiveJobs: boolean; closingSoon: boolean; highVacancy: boolean; minimumMatchThreshold: number; onboardingComplete: boolean; }
+export const getPreferences = async (): Promise<Preferences> => (await api.get("/preferences")).data.data;
+export const savePreferences = async (data: Partial<Preferences>): Promise<Preferences> => (await api.patch("/preferences", data)).data.data;
+export const getRecommendations = async (): Promise<(Job & { match: { score: number; matched: string[]; missing: string[] } })[]> => (await api.get("/recommendations")).data.data;
+export const recordEvent = async (eventType: string, jobId?: string) => { await api.post("/events", { eventType, jobId }); };
+export const logoutAll = async () => api.post("/auth/logout-all");
+export const getDashboard = async () => (await api.get("/dashboard")).data.data as { totalJobs: number; viewed: number; applyClicks: number; saved: number; threshold: number; activity: { date: string; count: number }[] };
+export const toggleSavedJob = async (jobId: string): Promise<{ saved: boolean }> => (await api.post(`/jobs/${jobId}/save`)).data.data;
+export const getSavedJobs = async (): Promise<Job[]> => (await api.get("/me/jobs")).data.data;

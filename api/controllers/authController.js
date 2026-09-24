@@ -5,21 +5,13 @@ import catchAsync from "../utils/catchAsync.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import hashToken from "../utils/hashToken.js";
+import { getRefreshTokenCookieOptions } from "../utils/cookieOptions.js";
 
 // FIX: new — secure:true requires HTTPS. On http://localhost in dev, browsers
 // silently refuse to store/send the cookie, so refreshAccessToken() on
 // reload always came back 401 and the session never persisted. sameSite:
 // "strict" is also often stricter than needed for local dev. Both now flex
 // based on NODE_ENV instead of being hardcoded for production only.
-const isProd = process.env.NODE_ENV === "production";
-const refreshTokenCookieOptions = {
-  httpOnly: true,
-  secure: isProd,
-  sameSite: isProd ? "strict" : "lax",
-  maxAge: 10 * 24 * 60 * 60 * 1000, //expire in days
-  // maxAge: 5000, //expire in days
-};
-
 export const userSignUp = catchAsync(async (req, res, next) => {
   const { name, email, password } = req.body;
 
@@ -62,7 +54,7 @@ export const userSignUp = catchAsync(async (req, res, next) => {
     },
   );
 
-  res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
+  res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
 
   // newUser still carries the bcrypt-hashed password in memory even though
   // the schema marks it select:false (that only hides it on *queries*, not on
@@ -124,7 +116,7 @@ export const userLogin = catchAsync(async (req, res, next) => {
     },
   );
 
-  res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
+  res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
 
   // we explicitly .select("+password") above to compare it — strip it
   // back out before sending loginUser to the client.
@@ -171,6 +163,10 @@ export const handleRefreshToken = catchAsync(async (req, res, next) => {
     return next(new AppError("Invalid Token", 401));
   }
 
+  if (session.user.toString() !== decoded.id) {
+    return next(new AppError("Invalid Token", 401));
+  }
+
   const newAccessToken = jwt.sign(
     {
       id: decoded.id,
@@ -196,7 +192,7 @@ export const handleRefreshToken = catchAsync(async (req, res, next) => {
   session.refreshTokenHashed = newRefreshTokenHashed;
   await session.save();
 
-  res.cookie("refreshToken", newRefreshToken, refreshTokenCookieOptions);
+  res.cookie("refreshToken", newRefreshToken, getRefreshTokenCookieOptions());
 
   res.status(200).json({
     status: "success",
@@ -225,7 +221,7 @@ export const userLogout = catchAsync(async (req, res, next) => {
   session.revoked = true;
   await session.save();
 
-  res.clearCookie("refreshToken");
+  res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
 
   res.status(200).json({
     status: "success",
@@ -241,13 +237,23 @@ export const userLogoutAllSession = catchAsync(async (req, res, next) => {
   }
 
   const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+  const refreshTokenHashed = hashToken(refreshToken);
+  const session = await Session.findOne({
+    user: decoded.id,
+    refreshTokenHashed,
+    revoked: false,
+  });
+
+  if (!session) {
+    return next(new AppError("Invalid Token", 401));
+  }
 
   await Session.updateMany(
     { user: decoded.id, revoked: false },
     { revoked: true },
   );
 
-  res.clearCookie("refreshToken");
+  res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
 
   res.status(200).json({
     status: "success",

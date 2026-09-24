@@ -73,7 +73,7 @@ const globalErrorHandler = (err, req, res, next) => {
     if (error.name === "TokenExpiredError") error = handleJWTExpiredError();
 
     sendErrorDev(error, res);
-  } else if (process.env.NODE_ENV === "production") {
+  } else {
     let error = err;
 
     //Cast error for wrong type of id or value
